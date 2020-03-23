@@ -18,26 +18,12 @@ class CPU:
     def ram_write(self, MAR, MDR):
         self.ram[MAR] = MDR
 
-    def load(self):
+    def load(self, file):
         """Load a program into memory."""
-
-        address = 0
-
-        # For now, we've just hardcoded a program:
-
-        program = [
-            # From print8.ls8
-            0b10000010,  # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111,  # PRN R0
-            0b00000000,
-            0b00000001,  # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        with open(file) as f:
+            for x in f:
+                self.ram[self.pc] = int(x[0:8], 2)
+                self.pc += 1
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -70,4 +56,24 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        print(self.ram_read(0))
+        self.pc = 0
+        IR = self.ram[self.pc]
+        operand_a = self.ram[self.pc + 1]
+        operand_b = self.ram[self.pc + 2]
+        HRT = 1
+        LDI = 82
+        PRN = 47
+
+        while True:
+            if IR == HRT:
+                break
+            elif IR == LDI:
+                self.reg[operand_a] = operand_b
+                self.pc += 3
+                IR = self.ram[self.pc]
+            elif IR == PRN:
+                print(self.reg[operand_a])
+                self.pc += 2
+                IR = self.ram[self.pc]
+            self.pc += 1
+            IR = self.ram[self.pc]
