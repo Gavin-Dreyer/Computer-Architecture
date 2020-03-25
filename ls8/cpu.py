@@ -59,11 +59,14 @@ class CPU:
     def run(self):
         """Run the CPU."""
         self.pc = 0
+        self.reg[7] = 0xf4
         IR = self.ram[self.pc]
         HLT = 0b00000001
         LDI = 0b10000010
         PRN = 0b01000111
         MUL = 0b10100010
+        PUSH = 0b01000101
+        POP = 0b01000110
 
         while True:
             if IR == HLT:
@@ -84,6 +87,17 @@ class CPU:
                 operand_b = self.ram[self.pc + 2]
                 self.alu('MUL', operand_a, operand_b)
                 self.pc += 3
+                IR = self.ram[self.pc]
+            elif IR == PUSH:
+                operand_a = self.reg[self.ram[self.pc + 1]]
+                self.reg[7] -= 1
+                self.ram[self.reg[7]] = operand_a
+                self.pc += 2
+                IR = self.ram[self.pc]
+            elif IR == POP:
+                self.reg[self.ram[self.pc + 1]] = self.ram[self.reg[7]]
+                self.reg[7] += 1
+                self.pc += 2
                 IR = self.ram[self.pc]
             else:
                 print("Unknown instruction")
