@@ -22,6 +22,7 @@ class CPU:
         """Load a program into memory."""
         with open(file) as f:
             for x in f:
+                #print(int(x[0:8], 2))
                 self.ram[self.pc] = int(x[0:8], 2)
                 self.pc += 1
 
@@ -30,7 +31,8 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        # elif op == "SUB": etc
+        elif op == "MUL":
+            self.reg[reg_a] *= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -58,22 +60,31 @@ class CPU:
         """Run the CPU."""
         self.pc = 0
         IR = self.ram[self.pc]
-        operand_a = self.ram[self.pc + 1]
-        operand_b = self.ram[self.pc + 2]
-        HRT = 1
-        LDI = 82
-        PRN = 47
+        HLT = 0b00000001
+        LDI = 0b10000010
+        PRN = 0b01000111
+        MUL = 0b10100010
 
         while True:
-            if IR == HRT:
+            if IR == HLT:
                 break
             elif IR == LDI:
+                operand_a = self.ram[self.pc + 1]
+                operand_b = self.ram[self.pc + 2]
                 self.reg[operand_a] = operand_b
                 self.pc += 3
                 IR = self.ram[self.pc]
             elif IR == PRN:
+                operand_a = self.ram[self.pc + 1]
                 print(self.reg[operand_a])
                 self.pc += 2
                 IR = self.ram[self.pc]
-            self.pc += 1
-            IR = self.ram[self.pc]
+            elif IR == MUL:
+                operand_a = self.ram[self.pc + 1]
+                operand_b = self.ram[self.pc + 2]
+                self.alu('MUL', operand_a, operand_b)
+                self.pc += 3
+                IR = self.ram[self.pc]
+            else:
+                print(f"Unknown instruction")
+                sys.exit(1)
