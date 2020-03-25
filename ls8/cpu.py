@@ -86,5 +86,5 @@ class CPU:
                 self.pc += 3
                 IR = self.ram[self.pc]
             else:
-                print(f"Unknown instruction")
+                print("Unknown instruction")
                 sys.exit(1)
