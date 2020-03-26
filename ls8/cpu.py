@@ -22,9 +22,9 @@ class CPU:
         """Load a program into memory."""
         with open(file) as f:
             for x in f:
-                #print(int(x[0:8], 2))
-                self.ram[self.pc] = int(x[0:8], 2)
-                self.pc += 1
+                if x[0] != '#':
+                    self.ram[self.pc] = int(x[0:8], 2)
+                    self.pc += 1
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -67,6 +67,9 @@ class CPU:
         MUL = 0b10100010
         PUSH = 0b01000101
         POP = 0b01000110
+        CALL = 0b01010000
+        RET = 0b00010001
+        ADD = 0b10100000
 
         while True:
             if IR == HLT:
@@ -79,6 +82,7 @@ class CPU:
                 IR = self.ram[self.pc]
             elif IR == PRN:
                 operand_a = self.ram[self.pc + 1]
+                print(self.ram, self.reg)
                 print(self.reg[operand_a])
                 self.pc += 2
                 IR = self.ram[self.pc]
@@ -86,6 +90,12 @@ class CPU:
                 operand_a = self.ram[self.pc + 1]
                 operand_b = self.ram[self.pc + 2]
                 self.alu('MUL', operand_a, operand_b)
+                self.pc += 3
+                IR = self.ram[self.pc]
+            elif IR == ADD:
+                operand_a = self.ram[self.pc + 1]
+                operand_b = self.ram[self.pc + 2]
+                self.alu('ADD', operand_a, operand_b)
                 self.pc += 3
                 IR = self.ram[self.pc]
             elif IR == PUSH:
@@ -98,6 +108,16 @@ class CPU:
                 self.reg[self.ram[self.pc + 1]] = self.ram[self.reg[7]]
                 self.reg[7] += 1
                 self.pc += 2
+                IR = self.ram[self.pc]
+            elif IR == CALL:
+                self.reg[7] -= 1
+                self.ram[self.reg[7]] = self.pc + 2
+                reg = self.ram[self.pc + 1]
+                self.pc = self.reg[reg]
+                IR = self.ram[self.pc]
+            elif IR == RET:
+                self.pc = self.ram[self.reg[7]]
+                self.reg[7] += 1
                 IR = self.ram[self.pc]
             else:
                 print("Unknown instruction")
